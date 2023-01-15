@@ -80,52 +80,57 @@ extension ViewController: UITableViewDelegate {
         // more, less 스크롤 방향의 기준: 새로운 콘텐츠로 스크롤링하면 more, 이전 콘텐츠로 스크롤링하면 less
         // ex) more scroll 한다는 의미: 손가락을 아래에서 위로 올려서 새로운 콘텐츠를 확인한다
         
-        // less 스크롤
+        let outerScroll = outerScrollView == scrollView
+        let innerScroll = !outerScroll
         let lessScroll = scrollView.panGestureRecognizer.translation(in: scrollView).y < 0
+        let moreScroll = !lessScroll
         
         // outer scroll이 스크롤 할 수 있는 최대값 (이 값을 sticky header 뷰가 있다면 그 뷰의 frame.maxY와 같은 값으로 사용해도 가능)
         let outerScrollMaxOffsetY = outerScrollView.contentSize.height - outerScrollView.frame.height
         
-        if lessScroll {
-            // inner scroll를 잡아서 less 스크롤하는 경우, 만약 inner scroll의 less scroll 다 했다면 outer scroll을 less 스크롤 시키기
-            if scrollView == innerScrollView {
-                
-                // outer scroll을 제어해야하는 경우 (단, inner scroll이 parent 때문에 스크롤 되는 경우는 무시)
-                guard
-                    outerScrollView.contentOffset.y < outerScrollMaxOffsetY
-                        && !innerScrollingDownDueToOuterScroll
-                else { return }
-                
-                // outer scroll를 less 스크롤
-                let minOffetY = min(outerScrollView.contentOffset.y + innerScrollView.contentOffset.y, outerScrollMaxOffsetY)
-                let offsetY = max(minOffetY, 0)
-                outerScrollView.contentOffset.y = offsetY
-                
-                // inner scroll은 스크롤 되지 않아야 하므로 0으로 고정
-                innerScrollView.contentOffset.y = 0
-            }
-        } else { // more 스크롤
-            if scrollView == innerScrollView {
-                // inner scroll 뷰를 최대한 올린 경우, outer scroll를 올려주기
-                if innerScrollView.contentOffset.y < 0 && outerScrollView.contentOffset.y > 0 {
-                    outerScrollView.contentOffset.y = max(outerScrollView.contentOffset.y - abs(innerScrollView.contentOffset.y), 0)
-                }
-            }
+        // 1. outer scroll을 more 스크롤 할 경우?
+        // 일반 스크롤 동작
+        if outerScroll && moreScroll {
+            return
+        }
+        
+        // 2. outer scroll을 less 스크롤 할 경우?
+        // 만약 안쪽 스크롤이 less 스크롤 할게 남아 있다면 (offset.y가 0이 아닌 경우), 안쪽 스크롤을 less 스크롤
+        if outerScroll && lessScroll {
+            guard innerScrollView.contentOffset.y > 0 && outerScrollView.contentOffset.y < outerScrollMaxOffsetY else { return }
+            innerScrollingDownDueToOuterScroll = true
             
-            // outer scroll을 less 스크롤 하는데, inner scroll이 아직 less scroll이 끝나지 않은 경우, outer scroll은 maxOffsetY로 고정해놓고 inner scroll을 less scroll 시도
-            if scrollView == outerScrollView {
-                if innerScrollView.contentOffset.y > 0 && outerScrollView.contentOffset.y < outerScrollMaxOffsetY {
-                    innerScrollingDownDueToOuterScroll = true
-                    
-                    // outer scroll에서 스크롤한 만큼 inner scroll에 적용
-                    innerScrollView.contentOffset.y = max(innerScrollView.contentOffset.y - (outerScrollMaxOffsetY - outerScrollView.contentOffset.y), 0)
-                    
-                    // outer scroll은 스크롤 되지 않고 고정
-                    outerScrollView.contentOffset.y = outerScrollMaxOffsetY
-                    
-                    innerScrollingDownDueToOuterScroll = false
-                }
-            }
+            // outer scroll에서 스크롤한 만큼 inner scroll에 적용
+            innerScrollView.contentOffset.y = max(innerScrollView.contentOffset.y - (outerScrollMaxOffsetY - outerScrollView.contentOffset.y), 0)
+            
+            // outer scroll은 스크롤 되지 않고 고정
+            outerScrollView.contentOffset.y = outerScrollMaxOffsetY
+            
+            innerScrollingDownDueToOuterScroll = false
+        }
+        
+        // 3. inner scroll을 more 스크롤 할 경우?
+        // inner scroll 뷰를 more 스크롤 맥스인 경우, outer scroll를 more 스크롤
+        if innerScroll && moreScroll {
+            guard innerScrollView.contentOffset.y < 0 && outerScrollView.contentOffset.y > 0 else { return }
+            outerScrollView.contentOffset.y = max(outerScrollView.contentOffset.y - abs(innerScrollView.contentOffset.y), 0)
+        }
+        
+        // 4. inner scroll을 less 스크롤 할 경우?
+        // inner scroll을 더 올릴게 없으면 (offset.y가 0인 경우), outer scroll이 동작
+        if innerScroll && lessScroll {
+            guard
+                outerScrollView.contentOffset.y < outerScrollMaxOffsetY
+                    && !innerScrollingDownDueToOuterScroll
+            else { return }
+            
+            // outer scroll를 less 스크롤
+            let minOffetY = min(outerScrollView.contentOffset.y + innerScrollView.contentOffset.y, outerScrollMaxOffsetY)
+            let offsetY = max(minOffetY, 0)
+            outerScrollView.contentOffset.y = offsetY
+            
+            // inner scroll은 스크롤 되지 않아야 하므로 0으로 고정
+            innerScrollView.contentOffset.y = 0
         }
     }
 }
