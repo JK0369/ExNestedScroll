@@ -1,0 +1,6 @@
+framework module Pods_ExNestedScrolling {
+  umbrella header "Pods-ExNestedScrolling-umbrella.h"
+
+  export *
+  module * { export * }
+}
