@@ -113,9 +113,10 @@ extension ViewController: UITableViewDelegate {
         }
         
         // 3. inner scroll을 less 스크롤
-        // inner scroll을 less 스크롤 다 한 경우, outer scroll를 less 스크롤
+        // outer scroll을 모두 more 스크롤 후에 inner scroll을 more scroll
         if innerScroll && lessScroll {
             guard innerScrollView.contentOffset.y < 0 && outerScrollView.contentOffset.y > 0 else { return }
+            print(outerScrollMaxOffsetY, outerScrollView.contentOffset.y - abs(innerScrollView.contentOffset.y))
             outerScrollView.contentOffset.y = max(outerScrollView.contentOffset.y - abs(innerScrollView.contentOffset.y), 0)
         }
         
