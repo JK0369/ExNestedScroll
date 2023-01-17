@@ -131,7 +131,7 @@ extension ViewController: UITableViewDelegate {
         }
         
         // 4. inner scroll을 more 스크롤 할 경우?
-        // more scroll이 아직 more 스크롤할게 남아 있다면, innerScroll을 그대로 두고 outer scroll을 more 스크롤
+        // outer scroll이 아직 more 스크롤할게 남아 있다면, innerScroll을 그대로 두고 outer scroll을 more 스크롤
         if innerScroll && moreScroll {
             guard
                 outerScrollView.contentOffset.y < outerScrollMaxOffsetY
