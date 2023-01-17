@@ -9,4 +9,6 @@ target 'ExNestedScrolling' do
   
   pod 'SnapKit'
   pod 'Then'
+  pod 'RxSwift'
+  pod 'RxCocoa'
 end

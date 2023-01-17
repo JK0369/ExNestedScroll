@@ -8,6 +8,8 @@
 import UIKit
 import Then
 import SnapKit
+import RxSwift
+import RxCocoa
 
 class ViewController: UIViewController {
     private let outerScrollView = UIScrollView()
@@ -37,6 +39,7 @@ class ViewController: UIViewController {
     
     let items = (0...31).map(String.init)
     var innerScrollingDownDueToOuterScroll = false
+    private let disposeBag = DisposeBag()
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -59,6 +62,17 @@ class ViewController: UIViewController {
         outerScrollView.delegate = self
         tableView.delegate = self
         tableView.dataSource = self
+        
+        tableView.rx.didScroll
+            .bind(with: self) { ss, _ in
+                print(ss.tableView.contentOffset.y)
+            }
+            .disposed(by: disposeBag)
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: {
+            print("teset")
+            self.outerScrollView.contentOffset = .init(x: 0, y: 120)
+        })
     }
 }
 
@@ -82,20 +96,20 @@ extension ViewController: UITableViewDelegate {
         
         let outerScroll = outerScrollView == scrollView
         let innerScroll = !outerScroll
-        let lessScroll = scrollView.panGestureRecognizer.translation(in: scrollView).y < 0
-        let moreScroll = !lessScroll
+        let moreScroll = scrollView.panGestureRecognizer.translation(in: scrollView).y < 0
+        let lessScroll = !moreScroll
         
         // outer scroll이 스크롤 할 수 있는 최대값 (이 값을 sticky header 뷰가 있다면 그 뷰의 frame.maxY와 같은 값으로 사용해도 가능)
         let outerScrollMaxOffsetY = outerScrollView.contentSize.height - outerScrollView.frame.height
         
-        // 1. outer scroll을 more 스크롤 할 경우?
+        // 1. outer scroll을 more 스크롤
         // 일반 스크롤 동작
         if outerScroll && moreScroll {
             return
         }
         
-        // 2. outer scroll을 less 스크롤 할 경우?
-        // 만약 안쪽 스크롤이 less 스크롤 할게 남아 있다면 (offset.y가 0이 아닌 경우), 안쪽 스크롤을 less 스크롤
+        // 2. outer scroll을 less 스크롤
+        // 만약 inner scroll이 less 스크롤 할게 남아 있다면 inner scroll을 less 스크롤
         if outerScroll && lessScroll {
             guard innerScrollView.contentOffset.y > 0 && outerScrollView.contentOffset.y < outerScrollMaxOffsetY else { return }
             innerScrollingDownDueToOuterScroll = true
@@ -110,21 +124,21 @@ extension ViewController: UITableViewDelegate {
         }
         
         // 3. inner scroll을 more 스크롤 할 경우?
-        // inner scroll 뷰를 more 스크롤 맥스인 경우, outer scroll를 more 스크롤
-        if innerScroll && moreScroll {
+        // inner scroll을 more 스크롤 다 한 경우, outer scroll를 more 스크롤
+        if innerScroll && lessScroll {
             guard innerScrollView.contentOffset.y < 0 && outerScrollView.contentOffset.y > 0 else { return }
             outerScrollView.contentOffset.y = max(outerScrollView.contentOffset.y - abs(innerScrollView.contentOffset.y), 0)
         }
         
-        // 4. inner scroll을 less 스크롤 할 경우?
-        // inner scroll을 더 올릴게 없으면 (offset.y가 0인 경우), outer scroll이 동작
-        if innerScroll && lessScroll {
+        // 4. inner scroll을 more 스크롤 할 경우?
+        // more scroll이 아직 more 스크롤할게 남아 있다면, innerScroll을 그대로 두고 outer scroll을 more 스크롤
+        if innerScroll && moreScroll {
             guard
                 outerScrollView.contentOffset.y < outerScrollMaxOffsetY
                     && !innerScrollingDownDueToOuterScroll
             else { return }
             
-            // outer scroll를 less 스크롤
+            // outer scroll를 more 스크롤
             let minOffetY = min(outerScrollView.contentOffset.y + innerScrollView.contentOffset.y, outerScrollMaxOffsetY)
             let offsetY = max(minOffetY, 0)
             outerScrollView.contentOffset.y = offsetY
