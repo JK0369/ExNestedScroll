@@ -68,11 +68,6 @@ class ViewController: UIViewController {
                 print(ss.tableView.contentOffset.y)
             }
             .disposed(by: disposeBag)
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: {
-            print("teset")
-            self.outerScrollView.contentOffset = .init(x: 0, y: 120)
-        })
     }
 }
 
