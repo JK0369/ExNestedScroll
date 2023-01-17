@@ -79,6 +79,10 @@ extension ViewController: UITableViewDataSource {
 }
 
 extension ViewController: UITableViewDelegate {
+    private enum Metric {
+        static let reduceAcceacceleration = 5.0
+    }
+    
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         // more, less 스크롤 방향의 기준: 새로운 콘텐츠로 스크롤링하면 more, 이전 콘텐츠로 스크롤링하면 less
         // ex) more scroll 한다는 의미: 손가락을 아래에서 위로 올려서 새로운 콘텐츠를 확인한다
@@ -116,7 +120,7 @@ extension ViewController: UITableViewDelegate {
         // inner scroll을 모두 less scroll한 경우, outer scroll을 less scroll
         if innerScroll && lessScroll {
             guard innerScrollView.contentOffset.y < 0 && outerScrollView.contentOffset.y > 0 else { return }
-            outerScrollView.contentOffset.y = max(outerScrollView.contentOffset.y - abs(innerScrollView.contentOffset.y), 0)
+            outerScrollView.contentOffset.y = max(outerScrollView.contentOffset.y - abs(innerScrollView.contentOffset.y) / Metric.reduceAcceacceleration, 0)
         }
         
         // 4. inner scroll을 more 스크롤
