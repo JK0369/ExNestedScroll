@@ -62,12 +62,6 @@ class ViewController: UIViewController {
         outerScrollView.delegate = self
         tableView.delegate = self
         tableView.dataSource = self
-        
-        tableView.rx.didScroll
-            .bind(with: self) { ss, _ in
-                print(ss.tableView.contentOffset.y)
-            }
-            .disposed(by: disposeBag)
     }
 }
 
