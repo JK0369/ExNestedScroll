@@ -79,9 +79,10 @@ extension ViewController: UITableViewDataSource {
 }
 
 extension ViewController: UITableViewDelegate {
-    private enum Metric {
-        static let reduceAcceleration = 5.0
-    }
+private enum Policy {
+    static let reduceAcceleration = 5.0
+    static let floatingPointTolerance = 0.1
+}
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         // more, less 스크롤 방향의 기준: 새로운 콘텐츠로 스크롤링하면 more, 이전 콘텐츠로 스크롤링하면 less
@@ -120,7 +121,7 @@ extension ViewController: UITableViewDelegate {
         // inner scroll을 모두 less scroll한 경우, outer scroll을 less scroll
         if innerScroll && lessScroll {
             guard innerScrollView.contentOffset.y < 0 && outerScrollView.contentOffset.y > 0 else { return }
-            let moveOffset = abs(innerScrollView.contentOffset.y) / Metric.reduceAcceleration
+            let moveOffset = abs(innerScrollView.contentOffset.y) / Policy.reduceAcceleration
             outerScrollView.contentOffset.y = max(outerScrollView.contentOffset.y - moveOffset, 0)
         }
         
@@ -128,8 +129,8 @@ extension ViewController: UITableViewDelegate {
         // outer scroll이 아직 more 스크롤할게 남아 있다면, innerScroll을 그대로 두고 outer scroll을 more 스크롤
         if innerScroll && moreScroll {
             guard
-                outerScrollView.contentOffset.y < outerScrollMaxOffsetY
-                    && !innerScrollingDownDueToOuterScroll
+                outerScrollView.contentOffset.y + Policy.floatingPointTolerance < outerScrollMaxOffsetY,
+                !innerScrollingDownDueToOuterScroll
             else { return }
             
             // outer scroll를 more 스크롤
