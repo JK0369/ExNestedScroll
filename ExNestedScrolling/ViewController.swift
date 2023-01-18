@@ -77,7 +77,7 @@ extension ViewController: UITableViewDataSource {
         return cell
     }
 }
-
+var before = 0.0
 extension ViewController: UITableViewDelegate {
     private enum Policy {
         static let floatingPointTolerance = 0.1
@@ -125,8 +125,13 @@ extension ViewController: UITableViewDelegate {
         // 3. inner scroll을 less 스크롤
         // inner scroll을 모두 less scroll한 경우, outer scroll을 less scroll
         if innerScroll && lessScroll {
+            defer { before = innerScrollView.contentOffset.y }
+            
             guard innerScrollView.contentOffset.y < 0 && outerScrollView.contentOffset.y > 0 else { return }
-            let moveOffset = outerScrollMaxOffsetY - abs(innerScrollView.contentOffset.y)
+            let moveOffset = outerScrollMaxOffsetY - abs(innerScrollView.contentOffset.y) * 3
+            
+            print(before - innerScrollView.contentOffset.y > 0)
+            guard before - innerScrollView.contentOffset.y > 0 else { return }
             outerScrollView.contentOffset.y = max(moveOffset, 0)
         }
         
@@ -144,6 +149,21 @@ extension ViewController: UITableViewDelegate {
             
             // inner scroll은 스크롤 되지 않아야 하므로 0으로 고정
             innerScrollView.contentOffset.y = 0
+        }
+    }
+}
+
+private struct AssociatedKeys {
+    static var lastOffsetY = "lastOffsetY"
+}
+
+extension UIScrollView {
+    var lastOffsetY: CGFloat {
+        get {
+            (objc_getAssociatedObject(self, &AssociatedKeys.lastOffsetY) as? CGFloat) ?? contentOffset.y
+        }
+        set {
+            objc_setAssociatedObject(self, &AssociatedKeys.lastOffsetY, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
 }
