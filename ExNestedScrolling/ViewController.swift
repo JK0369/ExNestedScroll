@@ -96,9 +96,15 @@ extension ViewController: UITableViewDelegate {
         let outerScrollMaxOffsetY = outerScrollView.contentSize.height - outerScrollView.frame.height
         
         // 1. outer scroll을 more 스크롤
-        // 일반 스크롤 동작
+        // 만약 outer scroll을 more scroll 다 했으면, child scroll을 more scroll
         if outerScroll && moreScroll {
-            return
+            guard outerScrollMaxOffsetY < outerScrollView.contentOffset.y + Policy.floatingPointTolerance else { return }
+            innerScrollingDownDueToOuterScroll = true
+            
+            innerScrollView.contentOffset.y = innerScrollView.contentOffset.y + outerScrollView.contentOffset.y - outerScrollMaxOffsetY
+            outerScrollView.contentOffset.y = outerScrollMaxOffsetY
+            
+            innerScrollingDownDueToOuterScroll = false
         }
         
         // 2. outer scroll을 less 스크롤
