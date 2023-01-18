@@ -77,9 +77,10 @@ extension ViewController: UITableViewDataSource {
         return cell
     }
 }
-var before = 0.0
+
 extension ViewController: UITableViewDelegate {
     private enum Policy {
+        static let velocityConstant = 1.5
         static let floatingPointTolerance = 0.1
     }
     
@@ -125,13 +126,13 @@ extension ViewController: UITableViewDelegate {
         // 3. inner scroll을 less 스크롤
         // inner scroll을 모두 less scroll한 경우, outer scroll을 less scroll
         if innerScroll && lessScroll {
-            defer { before = innerScrollView.contentOffset.y }
+            defer { innerScrollView.lastOffsetY = innerScrollView.contentOffset.y }
             
             guard innerScrollView.contentOffset.y < 0 && outerScrollView.contentOffset.y > 0 else { return }
-            let moveOffset = outerScrollMaxOffsetY - abs(innerScrollView.contentOffset.y) * 3
+            let moveOffset = outerScrollMaxOffsetY - abs(innerScrollView.contentOffset.y) * Policy.velocityConstant
             
-            print(before - innerScrollView.contentOffset.y > 0)
-            guard before - innerScrollView.contentOffset.y > 0 else { return }
+            // innerScrollView의 bounces에 의하여 다시 outerScrollView가 당겨질수 있으므로 bounces로 다시 되돌아가는 offset 방지
+            guard innerScrollView.lastOffsetY > innerScrollView.contentOffset.y else { return }
             outerScrollView.contentOffset.y = max(moveOffset, 0)
         }
         
