@@ -133,7 +133,9 @@ extension ViewController: UITableViewDelegate {
             // innerScrollView의 bounces에 의하여 다시 outerScrollView가 당겨질수 있으므로 bounces로 다시 되돌아가는 offset 방지
             guard innerScrollView.lastOffsetY > innerScrollView.contentOffset.y else { return }
             
-            let moveOffset = outerScrollMaxOffsetY - abs(innerScrollView.contentOffset.y)
+            let moveOffset = outerScrollMaxOffsetY - abs(innerScrollView.contentOffset.y) * 3
+            guard moveOffset < outerScrollView.contentOffset.y else { return }
+            
             outerScrollView.contentOffset.y = max(moveOffset, 0)
         }
         
@@ -144,7 +146,6 @@ extension ViewController: UITableViewDelegate {
                 outerScrollView.contentOffset.y + Policy.floatingPointTolerance < outerScrollMaxOffsetY,
                 !innerScrollingDownDueToOuterScroll
             else { return }
-            
             // outer scroll를 more 스크롤
             let minOffetY = min(outerScrollView.contentOffset.y + innerScrollView.contentOffset.y, outerScrollMaxOffsetY)
             let offsetY = max(minOffetY, 0)
@@ -153,6 +154,8 @@ extension ViewController: UITableViewDelegate {
             // inner scroll은 스크롤 되지 않아야 하므로 0으로 고정
             innerScrollView.contentOffset.y = 0
         }
+        
+        // todo: scroll to top 시, inner scroll도 top으로 스크롤
     }
 }
 
