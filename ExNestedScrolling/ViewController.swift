@@ -127,12 +127,11 @@ extension ViewController: UITableViewDelegate {
         // inner scroll을 모두 less scroll한 경우, outer scroll을 less scroll
         if innerScroll && lessScroll {
             defer { innerScrollView.lastOffsetY = innerScrollView.contentOffset.y }
-            
             guard innerScrollView.contentOffset.y < 0 && outerScrollView.contentOffset.y > 0 else { return }
-            let moveOffset = outerScrollMaxOffsetY - abs(innerScrollView.contentOffset.y) * Policy.velocityConstant
             
             // innerScrollView의 bounces에 의하여 다시 outerScrollView가 당겨질수 있으므로 bounces로 다시 되돌아가는 offset 방지
             guard innerScrollView.lastOffsetY > innerScrollView.contentOffset.y else { return }
+            let moveOffset = outerScrollMaxOffsetY - abs(innerScrollView.contentOffset.y) * Policy.velocityConstant
             outerScrollView.contentOffset.y = max(moveOffset, 0)
         }
         
